@@ -94,11 +94,23 @@
                   <form action="/login" method="POST">
                     <!-- 2 column grid layout with text inputs for the first and last names -->
                     <div class="row">
-                      <% if (messages.error) { %>
-                      <div class="alert alert-danger">
-                        <strong> <%= messages.error %> </strong>
+                      <% if (typeof errors!='undefined') { %>
+                      <%errors.forEach((error)=>{ %>
+                      <div
+                        class="alert alert-warning alert-dismissible fade show"
+                        role="alert"
+                      >
+                        <%= error.message%>
+                        <button
+                          type="button"
+                          class="close"
+                          data-dismiss="alert"
+                          aria-label="Close"
+                        >
+                          <span aria-hidden="true">&times;</span>
+                        </button>
                       </div>
-                      <% } %>
+                      <% }) %> <% } %>
 
                       <h1 class="mb-3 h3">Login</h1>
                     </div>

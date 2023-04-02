@@ -1,74 +1,74 @@
 const express = require("express");
 const app = express();
 const bcrypt = require("bcrypt"); // Importing bcrypt package
-const passport = require("passport");
-const initializePassport = require("./passport-config.js");
-const flash = require("express-flash");
-const session = require("express-session");
-const methodOverride = require("method-override");
 const dotenv = require("dotenv");
 dotenv.config();
-const cookieParser = require("cookie-parser");
 const path = require("path");
 require("./config/db");
 const User = require("./model/userModel");
-initializePassport(
-  passport,
-  (email) => users.find((user) => user.email === email),
-  (id) => users.find((user) => user.id === id)
-);
-
-const users = [];
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "../", "frontend", "pages"));
 app.use(express.static(path.join(__dirname, "../", "frontend", "public")));
 app.use(express.urlencoded({ extended: false }));
-app.use(flash());
-app.use(cookieParser(process.env.SESSION_SECRET));
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false, // We wont resave the session variable if nothing is changed
-    saveUninitialized: false,
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(methodOverride("_method"));
-
-// Configuring the register post functionality
 app.post("/login", async (req, res) => {
-  const user = await User.find({ email: req.body.email });
-  // console.log(user[0]);
-  const salt = user[0].salt;
-  const current_password = await bcrypt.hash(req.body.password, salt);
-  // console.log(user);
-  console.log(user[0].password);
-  console.log(current_password);
-  if (user.length > 0 && user[0].password === current_password) {
-    res.render("index.ejs", { name: user[0].name });
-  } else {
-    res.redirect("/login");
-  }
+  let errors = [];
+  User.find({ email: req.body.email }).then(async (user) => {
+    if (!user) {
+      errors.push({
+        message: "Email is Not Registered",
+      });
+      res.render("signup.ejs", { errors });
+    } else {
+      const salt = user[0].salt;
+      const current_password = await bcrypt.hash(req.body.password, salt);
+      if (user[0].password === current_password) {
+        res.render("index.ejs", { name: user[0].name });
+      } else {
+        errors.push({
+          message: "Password is Incorrect",
+        });
+        res.render("login.ejs", { errors });
+      }
+    }
+  });
 });
 
 // Configuring the register post functionality
 app.post("/register", async (req, res) => {
-  // console.log("aww");
-  try {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
-    let user = new User({
-      name: req.body.name,
-      email: req.body.email,
-      password: hashedPassword,
-      salt: salt,
+  let errors = [];
+  if (!req.body.name || !req.body.email || !req.body.password) {
+    errors.push({
+      message: "Please fill all the fields",
     });
-    user.save().then(() => {
-      res.redirect("/login");
+  }
+  if (req.body.password.length < 6) {
+    errors.push({
+      message: "Password must be of length atleast 6",
     });
-  } catch (e) {
-    res.redirect("/register");
+  }
+  if (errors.length > 0) {
+    res.render("signup.ejs", { errors });
+  } else {
+    User.find({ email: req.body.email }).then(async (user) => {
+      if (user) {
+        errors.push({
+          message: "Email is already registered",
+        });
+        res.render("signup.ejs", { errors });
+      } else {
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
+        let user = new User({
+          name: req.body.name,
+          email: req.body.email,
+          password: hashedPassword,
+          salt: salt,
+        });
+        user.save().then(() => {
+          res.redirect("/login");
+        });
+      }
+    });
   }
 });
 
@@ -86,11 +86,8 @@ app.get("/register", (req, res) => {
   res.render("signup.ejs");
 });
 
-app.delete("/logout", (req, res) => {
-  req.logout(req.user, (err) => {
-    if (err) return next(err);
-    res.render("login.ejs");
-  });
+app.post("/logout", (req, res) => {
+  res.render("login.ejs");
 });
 var server = app.listen(8000);
 const io = require("socket.io")(server);
