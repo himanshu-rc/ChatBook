@@ -17,9 +17,7 @@ router.post("/login", async (req, res) => {
         });
         res.render("signup.ejs", { errors });
       } else {
-        const salt = user[0].salt;
-        const current_password = await bcrypt.hash(req.body.password, salt);
-        if (user[0].password === current_password) {
+        if (bcrypt.compare(req.body.password, user[0].password)) {
           res.render("index.ejs", { name: user[0].name });
         } else {
           errors.push({

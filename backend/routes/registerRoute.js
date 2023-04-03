@@ -31,7 +31,6 @@ router.post("/register", async (req, res) => {
           name: req.body.name,
           email: req.body.email,
           password: hashedPassword,
-          salt: salt,
         });
         user.save().then(() => {
           res.redirect("/login");
