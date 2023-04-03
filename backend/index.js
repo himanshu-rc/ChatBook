@@ -14,6 +14,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(homeRouter);
 app.use(loginRouter);
 app.use(registerRouter);
+app.use(logoutRouter);
 var server = app.listen(8000);
 const io = require("socket.io")(server);
 const user = {};
