@@ -8,7 +8,7 @@ const registerRouter = require("./routes/registerRoute");
 const logoutRouter = require("./routes/logoutRoute");
 const path = require("path");
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "../", "frontend", "pages"));
+app.set("views", path.join(__dirname, "../", "frontend", "views"));
 app.use(express.static(path.join(__dirname, "../", "frontend", "public")));
 app.use(express.urlencoded({ extended: false }));
 app.use(homeRouter);
