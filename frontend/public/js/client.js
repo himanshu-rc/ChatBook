@@ -26,9 +26,7 @@ form.addEventListener("submit", (e) => {
   socket.emit("send", message);
   messageInput.value = "";
 });
-// const btn = document.getElementById("btn");
 const Name = name;
-
 socket.emit("new-user-joined", Name);
 
 socket.on("user-joined", (Name) => {
