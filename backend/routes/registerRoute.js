@@ -18,27 +18,31 @@ router.post("/register", async (req, res) => {
   if (errors.length > 0) {
     res.render("signup.ejs", { errors });
   } else {
-    Userer.find({ email: req.body.email }).then(async (user) => {
-      if (user) {
-        errors.push({
-          message: "Email is already registered",
-        });
-        res.render("signup.ejs", { errors });
-      } else {
+    User.find({ email: req.body.email }).then(async (user) => {
+      if (user.length == 0) {
         let user = new User({
           name: req.body.name,
           email: req.body.email,
           password: req.body.password,
         });
-        user.save().then(() => {
-          res.redirect("/login");
+        user.generateAuthToken();
+        user
+          .save()
+          .then(() => {
+            res.redirect("/login");
+          })
+          .catch((e) => {
+            res.render("signup.ejs");
+          });
+      } else {
+        errors.push({
+          message: "Email is already registered",
         });
+        res.render("signup.ejs", { errors });
       }
     });
   }
 });
-
-// Routes
 router.get("/register", (req, res) => {
   res.render("signup.ejs");
 });
